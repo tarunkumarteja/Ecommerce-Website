@@ -1,7 +1,8 @@
 const bar = document.getElementById('bar');
 const close = document.getElementById('close');
 const nav = document.getElementById('navbar');
-
+var totEle = document.getElementById('total');
+var totEle2 = document.getElementById('total2');
 if (bar){
     bar.addEventListener('click', () => {
         nav.classList.add('active');
@@ -26,24 +27,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to update the total amount in the cart
     function updateCartTotal() {
         let cartTotal = 0;
-        subtotals.forEach((subtotal, index) => {
-            cartTotal += parseFloat(subtotal.textContent.replace('$', ''));
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const subtotalElement = row.querySelector('td:last-child'); // Ensure last cell is the subtotal
+            cartTotal += parseFloat(subtotalElement.textContent.replace('$', '')) || 0;
         });
-        totalDisplay.textContent = `$${cartTotal.toFixed(2)}`;
+        totEle.textContent = `$${cartTotal.toFixed(2)}`;
+        totEle2.textContent = `$${cartTotal.toFixed(2)}`;
     }
-
+    
     // Event listener to update subtotals when quantity is changed
     quantityInputs.forEach((input, index) => {
         input.addEventListener('input', function() {
-            const quantity = parseInt(input.value);
-            if (quantity < 1) {
-                input.value = 1; // Prevent negative or zero quantity
-            }
-            const subtotal = prices[index] * parseInt(input.value);
-            subtotals[index].textContent = `$${subtotal.toFixed(2)}`;
+            let quantity = parseInt(input.value);
+            if (quantity < 1) quantity = 1;
+            input.value = quantity;
+    
+            // Find the closest row and update subtotal
+            const row = input.closest('tr');
+            const price = parseFloat(row.querySelector('td:nth-child(4)').textContent.replace('$', ''));
+            row.querySelector('td:nth-child(6)').textContent = `$${(price * quantity).toFixed(2)}`;
+    
             updateCartTotal();
         });
     });
+    
 
     // Event listener for removing items from the cart
     removeButtons.forEach((button, index) => {
@@ -89,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newQuantityInput.value = 1; // Prevent negative or zero quantity
             }
             const newSubtotal = productPrice * newQuantity;
-            newRow.querySelector('td:nth-child(2)').textContent = `$${newSubtotal.toFixed(2)}`;
+            newRow.querySelector('td:nth-child(6)').textContent = `$${newSubtotal.toFixed(2)}`;
             updateCartTotal();
         });
 
@@ -98,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Example of how to add a new item to the cart (you can use this to dynamically add items)
-    // Add a sample item when the page loads (for demonstration purposes)
     // addItemToCart("Cartoon Astronaut T-Shirt", 118.19, "img/products/f1.jpg");
     // You can call addItemToCart() with new item details as needed
 });
