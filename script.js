@@ -15,60 +15,60 @@ if (close){
     })
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Get the necessary DOM elements
-    const removeButtons = document.querySelectorAll('.fa-times-circle'); // Remove item buttons
-    const quantityInputs = document.querySelectorAll('input[type="number"]'); // Quantity input fields
-    const subtotals = document.querySelectorAll('td:nth-child(6)'); // Subtotal columns
-    const prices = [118.19, 118.19, 118.19]; // Example prices for each item
-    const totalDisplay = document.querySelector('#subtotal td strong'); // Total display in the cart tools section
-    const cartItems = document.querySelector('tbody'); // Table body for cart items
+document.addEventListener('DOMContentLoaded', function () {
+    const removeButtons = document.querySelectorAll('.fa-times-circle');
+    const quantityInputs = document.querySelectorAll('input[type="number"]');
+    const cartItems = document.querySelector('tbody');
+    const totEle = document.getElementById('total');
+    const totEle2 = document.getElementById('total2');
 
     // Function to update the total amount in the cart
     function updateCartTotal() {
         let cartTotal = 0;
-        document.querySelectorAll('tbody tr').forEach(row => {
-            const subtotalElement = row.querySelector('td:last-child'); // Ensure last cell is the subtotal
-            cartTotal += parseFloat(subtotalElement.textContent.replace('$', '')) || 0;
+        cartItems.querySelectorAll('tr').forEach(row => {
+            const price = parseFloat(row.querySelector('td:nth-child(4)').textContent.replace('$', ''));
+            const quantity = parseInt(row.querySelector('input[type="number"]').value);
+            const subtotal = price * quantity;
+            row.querySelector('td:nth-child(6)').textContent = `$${subtotal.toFixed(2)}`;
+            cartTotal += subtotal;
         });
+        // Update the total display in the DOM
         totEle.textContent = `$${cartTotal.toFixed(2)}`;
         totEle2.textContent = `$${cartTotal.toFixed(2)}`;
     }
-    
-    // Event listener to update subtotals when quantity is changed
-    quantityInputs.forEach((input, index) => {
-        input.addEventListener('input', function() {
-            let quantity = parseInt(input.value);
-            if (quantity < 1) quantity = 1;
-            input.value = quantity;
-    
-            // Find the closest row and update subtotal
-            const row = input.closest('tr');
+
+    // Event listener to handle changes in quantity input fields
+    cartItems.addEventListener('input', function (event) {
+        if (event.target && event.target.matches('input[type="number"]')) {
+            let quantity = parseInt(event.target.value);
+            if (quantity < 1) {
+                quantity = 1; // Ensure that the minimum quantity is 1
+            }
+            event.target.value = quantity;
+
+            // Find the row for the corresponding item
+            const row = event.target.closest('tr');
             const price = parseFloat(row.querySelector('td:nth-child(4)').textContent.replace('$', ''));
             row.querySelector('td:nth-child(6)').textContent = `$${(price * quantity).toFixed(2)}`;
-    
-            updateCartTotal();
-        });
-    });
-    
 
-    // Event listener for removing items from the cart
-    removeButtons.forEach((button, index) => {
-        button.addEventListener('click', function() {
-            // Remove the item from the table
-            const row = button.closest('tr');
+            // Update the total cart value
+            updateCartTotal();
+        }
+    });
+
+    // Event listener to handle the removal of items
+    cartItems.addEventListener('click', function (event) {
+        if (event.target && event.target.matches('.fa-times-circle')) {
+            const row = event.target.closest('tr');
             row.remove();
-
-            // Update the total after removal
+            // Update the total after item removal
             updateCartTotal();
-        });
+        }
     });
 
-    // Function to add a new item to the cart (example)
+    // Function to add an item to the cart (example)
     function addItemToCart(productName, productPrice, productImage) {
-        // Create a new row for the cart item
         const newRow = document.createElement('tr');
-
         newRow.innerHTML = `
             <td><a href="#"><i class="far fa-times-circle"></i></a></td>
             <td><img src="${productImage}" alt="${productName}"></td>
@@ -77,34 +77,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <td><input type="number" value="1" min="1"></td>
             <td>$${productPrice}</td>
         `;
-        
-        // Append the new row to the cart
         cartItems.appendChild(newRow);
-
-        // Add event listener to the remove button of the new item
-        const newRemoveButton = newRow.querySelector('.fa-times-circle');
-        newRemoveButton.addEventListener('click', function() {
-            newRow.remove();
-            updateCartTotal();
-        });
-
-        // Add event listener to the quantity input of the new item
-        const newQuantityInput = newRow.querySelector('input[type="number"]');
-        newQuantityInput.addEventListener('input', function() {
-            const newQuantity = parseInt(newQuantityInput.value);
-            if (newQuantity < 1) {
-                newQuantityInput.value = 1; // Prevent negative or zero quantity
-            }
-            const newSubtotal = productPrice * newQuantity;
-            newRow.querySelector('td:nth-child(6)').textContent = `$${newSubtotal.toFixed(2)}`;
-            updateCartTotal();
-        });
 
         // Update the total after adding the new item
         updateCartTotal();
     }
 
-    // Example of how to add a new item to the cart (you can use this to dynamically add items)
-    // addItemToCart("Cartoon Astronaut T-Shirt", 118.19, "img/products/f1.jpg");
-    // You can call addItemToCart() with new item details as needed
+    // Example of adding an item dynamically (You can use this when needed)
+    // addItemToCart("Cartoon Astronaut T-Shirt", 118.19, "img/products/f5.jpg");
 });
